@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi App Rust</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 { color: #333; margin-bottom: 30px; }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover { background: #5568d3; }
+        .users-list {
+            margin-top: 30px;
+        }
+        .user-card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .delete-btn {
+            background: #dc3545;
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+        .delete-btn:hover { background: #c82333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦀 Gestión de Usuarios - Rust + PostgreSQL + Redis</h1>
+        
+        <div class="form-group">
+            <label>Nombre:</label>
+            <input type="text" id="name" placeholder="Juan Pérez">
+        </div>
+        
+        <div class="form-group">
+            <label>Email:</label>
+            <input type="email" id="email" placeholder="juan@example.com">
+        </div>
+        
+        <button onclick="createUser()">Crear Usuario</button>
+        <button onclick="loadUsers()" style="background: #28a745;">Cargar Usuarios</button>
+        
+        <div class="users-list" id="usersList"></div>
+    </div>
+    
+    <script>
+        async function createUser() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            
+            const response = await fetch('/api/user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email })
+            });
+            
+            if (response.ok) {
+                alert('Usuario creado exitosamente');
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                loadUsers();
+            } else {
+                alert('Error al crear usuario');
+            }
+        }
+        
+        async function loadUsers() {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+            
+            const usersList = document.getElementById('usersList');
+            usersList.innerHTML = '<h2>Usuarios registrados:</h2>';
+            
+            users.forEach(user => {
+                const div = document.createElement('div');
+                div.className = 'user-card';
+                div.innerHTML = `
+                    <div>
+                        <strong>${user.name}</strong> - ${user.email}
+                        <br><small>ID: ${user.id}</small>
+                    </div>
+                    <button class="delete-btn" onclick="deleteUser(${user.id})">Eliminar</button>
+                `;
+                usersList.appendChild(div);
+            });
+        }
+        
+        async function deleteUser(id) {
+            if (!confirm('¿Eliminar este usuario?')) return;
+            
+            const response = await fetch(`/api/user/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                alert('Usuario eliminado');
+                loadUsers();
+            }
+        }
+        
+        // Cargar usuarios al inicio
+        loadUsers();
+    </script>
+</body>
+</html>

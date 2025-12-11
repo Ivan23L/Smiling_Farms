@@ -1,0 +1,5 @@
+#directorio de compilacion Rust
+/target
+
+#archivos de entorno
+.env
