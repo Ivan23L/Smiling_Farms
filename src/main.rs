@@ -48,11 +48,19 @@ async fn main() -> std::io::Result<()> {
             .app_data(redis_data.clone())
             .wrap(middleware::Logger::default())
             .wrap(actix_cors::Cors::permissive())
-            // Rutas API
+            
+            // Rutas de usuarios (mantener)
             .route("/api/users", web::get().to(handlers::user_handler::get_users))
             .route("/api/user/{id}", web::get().to(handlers::user_handler::get_user))
             .route("/api/user", web::post().to(handlers::user_handler::create_user))
             .route("/api/user/{id}", web::delete().to(handlers::user_handler::delete_user))
+            
+            // 🎮 Rutas del juego Smiling Farms
+            .route("/api/game/init/{player_id}", web::get().to(handlers::game_handler::init_farm))
+            .route("/api/game/plant/{player_id}", web::post().to(handlers::game_handler::plant_crop))
+            .route("/api/game/harvest/{player_id}", web::post().to(handlers::game_handler::harvest_crop))
+            .route("/api/game/inventory/{player_id}", web::get().to(handlers::game_handler::get_inventory))
+            
             // Servir archivos estáticos
             .service(fs::Files::new("/", "./static").index_file("index.html"))
     })
@@ -60,3 +68,4 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+
