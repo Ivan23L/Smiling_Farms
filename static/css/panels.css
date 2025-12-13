@@ -1,0 +1,269 @@
+/* Overlay de paneles */
+#panelOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    z-index: 900;
+}
+
+#panelOverlay.show {
+    display: block;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Paneles laterales */
+.side-panel {
+    position: fixed;
+    right: -400px;
+    top: 60px;
+    bottom: 0;
+    width: 400px;
+    background: rgba(44, 62, 80, 0.98);
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    display: flex;
+    flex-direction: column;
+}
+
+.side-panel.show {
+    right: 0;
+}
+
+.panel-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(129, 199, 132, 0.3);
+}
+
+.panel-title {
+    color: #81c784;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.panel-close {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    font-size: 32px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.panel-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.panel-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Inventario Grid */
+#inventoryGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.inventory-card {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.inventory-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(129, 199, 132, 0.5);
+    transform: translateY(-3px);
+}
+
+.inventory-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.inventory-card-icon {
+    font-size: 36px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.inventory-card-info {
+    flex: 1;
+}
+
+.inventory-card-name {
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.inventory-card-qty {
+    color: #ffd700;
+    font-size: 14px;
+    margin-top: 3px;
+}
+
+.inventory-card-footer {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inventory-card-price {
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 14px;
+    flex: 1;
+}
+
+.inventory-sell-btn {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 13px;
+}
+
+.inventory-sell-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.5);
+}
+
+/* Build Panel */
+.build-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.build-tab {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid transparent;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+}
+
+.build-tab:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.build-tab.active {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+#buildGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.build-item {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.build-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(33, 150, 243, 0.5);
+    transform: translateY(-3px);
+}
+
+.build-item.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.build-item-icon {
+    font-size: 48px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.build-item-name {
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    text-align: center;
+}
+
+.build-item-cost {
+    color: #ffd700;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.build-item-level {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 11px;
+}
+
+.empty-panel-message {
+    text-align: center;
+    color: #888;
+    padding: 40px 20px;
+    font-size: 16px;
+}
+
+/* Scrollbar personalizado */
+.panel-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+    background: rgba(129, 199, 132, 0.5);
+    border-radius: 10px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(129, 199, 132, 0.7);
+}

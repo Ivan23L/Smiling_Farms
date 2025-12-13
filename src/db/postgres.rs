@@ -6,7 +6,6 @@ pub async fn get_client() -> Result<Client, Error> {
     
     let (client, connection) = tokio_postgres::connect(&db_url, NoTls).await?;
     
-    // Ejecutar conexión en segundo plano
     tokio::spawn(async move {
         if let Err(e) = connection.await {
             eprintln!("Error de conexión PostgreSQL: {}", e);
@@ -37,7 +36,7 @@ pub async fn init_db(client: &Client) -> Result<(), Error> {
         &[],
     ).await?;
     
-    // Tabla de parcelas (plots)
+    // Tabla de parcelas
     client.execute(
         "CREATE TABLE IF NOT EXISTS plots (
             id SERIAL PRIMARY KEY,
@@ -53,7 +52,7 @@ pub async fn init_db(client: &Client) -> Result<(), Error> {
         &[],
     ).await?;
     
-    // Tabla de inventario (granero)
+    // Tabla de inventario
     client.execute(
         "CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -95,6 +94,26 @@ pub async fn init_db(client: &Client) -> Result<(), Error> {
         )",
         &[],
     ).await?;
+    
+    // Tabla de cultivos desbloqueados
+    client.execute(
+        "CREATE TABLE IF NOT EXISTS unlocked_crops (
+            id SERIAL PRIMARY KEY,
+            player_id INT REFERENCES players(id) ON DELETE CASCADE,
+            crop_type VARCHAR(50) NOT NULL,
+            unlocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(player_id, crop_type)
+        )",
+        &[],
+    ).await?;
+    
+    // Desbloquear cultivos iniciales para jugador de prueba
+    let _ = client.execute(
+        "INSERT INTO unlocked_crops (player_id, crop_type) 
+         VALUES (1, 'wheat'), (1, 'carrot') 
+         ON CONFLICT DO NOTHING",
+        &[],
+    ).await;
     
     println!("✓ Base de datos de Smiling Farms inicializada");
     Ok(())

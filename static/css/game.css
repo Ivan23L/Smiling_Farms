@@ -1,0 +1,61 @@
+#tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.95);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    font-size: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+#tooltip.show {
+    display: block;
+}
+
+.tooltip-title {
+    font-weight: bold;
+    color: #81c784;
+    margin-bottom: 5px;
+}
+
+.tooltip-status {
+    font-size: 12px;
+    opacity: 0.9;
+}
+
+.notification {
+    position: fixed;
+    top: 80px;
+    right: 300px;
+    background: rgba(76, 175, 80, 0.98);
+    padding: 16px 24px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    animation: slideInBounce 0.5s;
+    z-index: 200;
+    border-left: 4px solid #4caf50;
+}
+
+.notification.error {
+    background: rgba(244, 67, 54, 0.98);
+    border-left-color: #d32f2f;
+}
+
+@keyframes slideInBounce {
+    0% {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+    60% {
+        transform: translateX(-20px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(0);
+    }
+}

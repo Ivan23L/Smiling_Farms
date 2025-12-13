@@ -4,752 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🌾 Smiling Farms</title>
+    
+    <!-- CSS Modular -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/hud.css">
+    <link rel="stylesheet" href="css/menus.css">
+    <link rel="stylesheet" href="css/game.css">
+    <link rel="stylesheet" href="css/panels.css">
+    
+    <!-- PixiJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            overflow: hidden;
-            user-select: none;
-        }
-        
-        #game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #hud {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(44, 62, 80, 0.98);
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
-        
-        .hud-section {
-            display: flex;
-            gap: 25px;
-            align-items: center;
-        }
-        
-        .hud-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: white;
-            font-weight: bold;
-            font-size: 15px;
-            padding: 6px 12px;
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            transition: all 0.3s;
-        }
-        
-        .hud-icon {
-            font-size: 20px;
-        }
-        
-        .hud-value {
-            color: #ffd700;
-            font-size: 16px;
-        }
-        
-        .level-badge {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 16px;
-        }
-        
-        .farm-name {
-            font-size: 18px;
-            color: #81c784;
-            font-weight: bold;
-        }
-        
-        #sidebar {
-            position: absolute;
-            right: 0;
-            top: 60px;
-            bottom: 0;
-            width: 280px;
-            background: rgba(44, 62, 80, 0.98);
-            padding: 20px;
-            overflow-y: auto;
-            box-shadow: -4px 0 16px rgba(0,0,0,0.4);
-            z-index: 100;
-        }
-        
-        .sidebar-section {
-            margin-bottom: 25px;
-        }
-        
-        .sidebar-title {
-            color: #81c784;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid rgba(129, 199, 132, 0.3);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .crop-item {
-            background: linear-gradient(135deg, #4caf50, #66bb6a);
-            padding: 14px;
-            margin: 8px 0;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            cursor: grab;
-            width: 100%;
-            transition: all 0.3s;
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        
-        .crop-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(76, 175, 80, 0.5);
-        }
-        
-        .crop-item:active {
-            cursor: grabbing;
-        }
-        
-        .crop-item.dragging {
-            opacity: 0.5;
-        }
-        
-        .crop-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .crop-name {
-            font-size: 16px;
-        }
-        
-        .crop-time {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-        
-        .crop-icon {
-            font-size: 28px;
-        }
-        
-        .inventory-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: rgba(255,255,255,0.08);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            color: white;
-        }
-        
-        .inventory-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .inventory-icon {
-            font-size: 24px;
-        }
-        
-        .inventory-item-name {
-            font-weight: bold;
-            text-transform: capitalize;
-        }
-        
-        .inventory-item-qty {
-            color: #ffd700;
-            font-weight: bold;
-            font-size: 16px;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 10px;
-            border-radius: 6px;
-        }
-        
-        #tooltip {
-            position: absolute;
-            background: rgba(0, 0, 0, 0.95);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            pointer-events: none;
-            display: none;
-            z-index: 1000;
-            font-size: 14px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
-        }
-        
-        #tooltip.show {
-            display: block;
-        }
-        
-        .tooltip-title {
-            font-weight: bold;
-            color: #81c784;
-            margin-bottom: 5px;
-        }
-        
-        #loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 24px;
-            z-index: 1000;
-        }
-        
-        .spinner {
-            border: 5px solid rgba(255,255,255,0.2);
-            border-top: 5px solid #81c784;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .notification {
-            position: fixed;
-            top: 80px;
-            right: 300px;
-            background: rgba(76, 175, 80, 0.98);
-            padding: 16px 24px;
-            border-radius: 10px;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-            animation: slideInBounce 0.5s;
-            z-index: 200;
-            border-left: 4px solid #4caf50;
-        }
-        
-        .notification.error {
-            background: rgba(244, 67, 54, 0.98);
-            border-left-color: #d32f2f;
-        }
-        
-        @keyframes slideInBounce {
-            0% {
-                transform: translateX(500px);
-                opacity: 0;
-            }
-            60% {
-                transform: translateX(-20px);
-                opacity: 1;
-            }
-            100% {
-                transform: translateX(0);
-            }
-        }
-    </style>
 </head>
 <body>
-    <div id="game-container">
-        <div id="loading">
-            <div class="spinner"></div>
-            <div>🌾 Cargando Smiling Farms...</div>
-        </div>
-        
-        <div id="hud">
-            <div class="hud-section">
-                <div class="farm-name" id="farmName">🌾 Mi Granja</div>
-                <div class="level-badge">
-                    <span class="hud-icon">⭐</span>
-                    <span>Nivel <span id="playerLevel">1</span></span>
-                </div>
-            </div>
-            <div class="hud-section">
-                <div class="hud-item">
-                    <span class="hud-icon">💰</span>
-                    <span class="hud-value" id="coins">500</span>
-                </div>
-                <div class="hud-item">
-                    <span class="hud-icon">💎</span>
-                    <span class="hud-value" id="gems">10</span>
-                </div>
-                <div class="hud-item">
-                    <span class="hud-icon">⚡</span>
-                    <span class="hud-value"><span id="energy">100</span>/<span id="maxEnergy">100</span></span>
-                </div>
-                <div class="hud-item">
-                    <span class="hud-icon">✨</span>
-                    <span class="hud-value" id="experience">0</span> XP
-                </div>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>🌾 Cargando Smiling Farms...</div>
+    </div>
+    
+    <!-- HUD Superior -->
+    <div id="hud">
+        <div class="hud-section">
+            <div class="farm-name" id="farmName">🌾 Mi Granja</div>
+            <div class="level-badge">
+                <span class="hud-icon">⭐</span>
+                <span>Nivel <span id="playerLevel">1</span></span>
             </div>
         </div>
         
-        <div id="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <span>🌱</span>
-                    <span>Cultivos - Arrastra hacia la granja</span>
-                </div>
-                <div class="crop-item" draggable="true" data-crop="wheat">
-                    <div class="crop-info">
-                        <div class="crop-name">Trigo</div>
-                        <div class="crop-time">⏱️ 2 minutos</div>
-                    </div>
-                    <div class="crop-icon">🌾</div>
-                </div>
-                <div class="crop-item" draggable="true" data-crop="carrot">
-                    <div class="crop-info">
-                        <div class="crop-name">Zanahoria</div>
-                        <div class="crop-time">⏱️ 5 minutos</div>
-                    </div>
-                    <div class="crop-icon">🥕</div>
-                </div>
-                <div class="crop-item" draggable="true" data-crop="corn">
-                    <div class="crop-info">
-                        <div class="crop-name">Maíz</div>
-                        <div class="crop-time">⏱️ 10 minutos</div>
-                    </div>
-                    <div class="crop-icon">🌽</div>
-                </div>
-                <div class="crop-item" draggable="true" data-crop="potato">
-                    <div class="crop-info">
-                        <div class="crop-name">Patata</div>
-                        <div class="crop-time">⏱️ 1 hora</div>
-                    </div>
-                    <div class="crop-icon">🥔</div>
-                </div>
-            </div>
-            
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <span>🎒</span>
-                    <span>Inventario</span>
-                </div>
-                <div id="inventoryList">
-                    <div style="color: #888; text-align: center; padding: 20px; font-size: 14px;">
-                        Vacío
-                    </div>
-                </div>
-            </div>
+        <div class="hud-section">
+            <button id="harvestBtn">
+                <span>🌾</span>
+                <span>Cosechar (<span id="readyCropsCount">0</span>)</span>
+            </button>
+            <button id="inventoryBtn" class="hud-btn">
+                <span>🎒</span>
+                <span>Inventario</span>
+            </button>
+            <button id="buildBtn" class="hud-btn">
+                <span>🏗️</span>
+                <span>Construir</span>
+            </button>
         </div>
         
-        <div id="tooltip">
-            <div class="tooltip-title" id="tooltipTitle"></div>
-            <div class="tooltip-status" id="tooltipStatus"></div>
+        <div class="hud-section">
+            <div class="hud-item">
+                <span class="hud-icon">💰</span>
+                <span class="hud-value" id="coins">500</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-icon">💎</span>
+                <span class="hud-value" id="gems">10</span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-icon">⚡</span>
+                <span class="hud-value"><span id="energy">100</span>/<span id="maxEnergy">100</span></span>
+            </div>
+            <div class="hud-item">
+                <span class="hud-icon">✨</span>
+                <span class="hud-value" id="experience">0</span> XP
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menú de cultivos (overlay + menú radial) -->
+    <div id="cropMenuOverlay"></div>
+    <div id="cropMenu">
+        <div class="radial-menu-container">
+            <div class="radial-center">🌱</div>
+        </div>
+    </div>
+    
+    <!-- Modal de cosecha -->
+    <div id="harvestModal">
+        <div class="harvest-modal-content">
+            <div class="harvest-modal-header">
+                <div class="harvest-modal-title">🌾 Cultivos listos</div>
+                <button class="close-modal" id="closeHarvestBtn">×</button>
+            </div>
+            <div id="harvestList"></div>
+            <div class="harvest-modal-actions">
+                <button class="harvest-btn primary" id="harvestSelectedBtn">✂️ Cosechar seleccionados</button>
+                <button class="harvest-btn secondary" id="harvestAllBtn">🌾 Cosechar todo</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tooltip -->
+    <div id="tooltip">
+        <div class="tooltip-title" id="tooltipTitle"></div>
+        <div class="tooltip-status" id="tooltipStatus"></div>
+    </div>
+    
+    <!-- Panel de Inventario -->
+    <div id="inventoryPanel" class="side-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">🎒 Inventario</h2>
+            <button class="panel-close" id="closeInventoryBtn">×</button>
+        </div>
+        <div class="panel-content">
+            <div id="inventoryGrid"></div>
         </div>
     </div>
 
-    <script>
-        const PLAYER_ID = 1;
-        const TILE_WIDTH = 64;
-        const TILE_HEIGHT = 32;
-        const API_BASE = 'http://localhost:8080/api';
-        
-        let app;
-        let draggedCrop = null;
-        let isDragging = false;
-        let gameData = { player: null, plots: [], inventory: [] };
-        let plotSprites = new Map();
-        let lastPainted = new Set();
-        
-        async function init() {
-            app = new PIXI.Application({
-                width: window.innerWidth - 280,
-                height: window.innerHeight,
-                backgroundColor: 0x87CEEB,
-                antialias: true
-            });
-            
-            document.getElementById('game-container').appendChild(app.view);
-            
-            setupDragAndDrop();
-            await loadGameData();
-            renderFarm();
-            
-            document.getElementById('loading').style.display = 'none';
-            setInterval(updateCrops, 1000);
-        }
-        
-        function setupDragAndDrop() {
-            document.querySelectorAll('.crop-item').forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    draggedCrop = e.target.dataset.crop;
-                    isDragging = true;
-                    lastPainted.clear();
-                    e.target.classList.add('dragging');
-                    console.log('🌱 Arrastrando:', draggedCrop);
-                });
-                
-                item.addEventListener('dragend', (e) => {
-                    e.target.classList.remove('dragging');
-                    draggedCrop = null;
-                    isDragging = false;
-                    lastPainted.clear();
-                    console.log('✋ Drag terminado');
-                });
-            });
-            
-            app.view.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if (!isDragging || !draggedCrop) return;
-                
-                const rect = app.view.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const plot = findPlotAtPosition(x, y);
-                
-                if (plot && plot.state === 'empty') {
-                    const key = `${plot.x},${plot.y}`;
-                    if (!lastPainted.has(key)) {
-                        lastPainted.add(key);
-                        plantCrop(plot, draggedCrop);
-                    }
-                }
-            });
-            
-            app.view.addEventListener('drop', (e) => {
-                e.preventDefault();
-            });
-        }
-        
-        function findPlotAtPosition(screenX, screenY) {
-            const containerX = (app.screen.width - 280) / 2;
-            const containerY = 100;
-            const relX = screenX - containerX;
-            const relY = screenY - containerY;
-            
-            let closestPlot = null;
-            let minDistance = Infinity;
-            
-            gameData.plots.forEach(plot => {
-                const isoX = (plot.x - plot.y) * (TILE_WIDTH / 2);
-                const isoY = (plot.x + plot.y) * (TILE_HEIGHT / 2);
-                const distance = Math.sqrt(Math.pow(relX - isoX, 2) + Math.pow(relY - isoY, 2));
-                
-                if (distance < TILE_WIDTH && distance < minDistance) {
-                    minDistance = distance;
-                    closestPlot = plot;
-                }
-            });
-            
-            return closestPlot;
-        }
-        
-        async function loadGameData() {
-            try {
-                const response = await fetch(`${API_BASE}/game/init/${PLAYER_ID}`);
-                gameData = await response.json();
-                console.log('📊 Datos:', gameData);
-                updateHUD();
-                await loadInventory();
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
-        async function loadInventory() {
-            try {
-                const response = await fetch(`${API_BASE}/game/inventory/${PLAYER_ID}`);
-                gameData.inventory = await response.json();
-                console.log('🎒 Inventario:', gameData.inventory);
-                updateInventoryUI();
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
-        function updateHUD() {
-            const p = gameData.player;
-            document.getElementById('farmName').textContent = `🌾 ${p.farm_name}`;
-            document.getElementById('playerLevel').textContent = p.level;
-            document.getElementById('coins').textContent = p.coins;
-            document.getElementById('gems').textContent = p.gems;
-            document.getElementById('energy').textContent = p.energy;
-            document.getElementById('maxEnergy').textContent = p.max_energy;
-            document.getElementById('experience').textContent = p.experience;
-        }
-        
-        function updateInventoryUI() {
-            const list = document.getElementById('inventoryList');
-            
-            if (gameData.inventory.length === 0) {
-                list.innerHTML = '<div style="color: #888; text-align: center; padding: 20px; font-size: 14px;">Vacío</div>';
-                return;
-            }
-            
-            list.innerHTML = gameData.inventory.map(item => `
-                <div class="inventory-item">
-                    <div class="inventory-left">
-                        <span class="inventory-icon">${getItemEmoji(item.item)}</span>
-                        <span class="inventory-item-name">${item.item}</span>
-                    </div>
-                    <span class="inventory-item-qty">×${item.quantity}</span>
-                </div>
-            `).join('');
-        }
-        
-        function getItemEmoji(item) {
-            const emojis = { 'wheat': '🌾', 'carrot': '🥕', 'corn': '🌽', 'potato': '🥔' };
-            return emojis[item] || '📦';
-        }
-        
-        function renderFarm() {
-            app.stage.removeChildren();
-            plotSprites.clear();
-            
-            const container = new PIXI.Container();
-            container.x = (app.screen.width - 280) / 2;
-            container.y = 100;
-            
-            const sortedPlots = [...gameData.plots].sort((a, b) => (a.x + a.y) - (b.x + b.y));
-            
-            sortedPlots.forEach(plot => {
-                const plotSprite = createPlotSprite(plot);
-                container.addChild(plotSprite);
-            });
-            
-            app.stage.addChild(container);
-        }
-        
-        function createPlotSprite(plot) {
-            const container = new PIXI.Container();
-            const graphics = new PIXI.Graphics();
-            const isoX = (plot.x - plot.y) * (TILE_WIDTH / 2);
-            const isoY = (plot.x + plot.y) * (TILE_HEIGHT / 2);
-            
-            let fillColor = plot.state === 'empty' ? 0x8B4513 : plot.state === 'ready' ? 0x7CFC00 : 0x6B8E23;
-            let borderColor = plot.state === 'empty' ? 0x654321 : plot.state === 'ready' ? 0x32CD32 : 0x556B2F;
-            
-            graphics.beginFill(fillColor);
-            graphics.moveTo(isoX, isoY);
-            graphics.lineTo(isoX + TILE_WIDTH/2, isoY + TILE_HEIGHT/2);
-            graphics.lineTo(isoX, isoY + TILE_HEIGHT);
-            graphics.lineTo(isoX - TILE_WIDTH/2, isoY + TILE_HEIGHT/2);
-            graphics.closePath();
-            graphics.endFill();
-            
-            graphics.lineStyle(2, borderColor, 0.8);
-            graphics.moveTo(isoX, isoY);
-            graphics.lineTo(isoX + TILE_WIDTH/2, isoY + TILE_HEIGHT/2);
-            graphics.lineTo(isoX, isoY + TILE_HEIGHT);
-            graphics.lineTo(isoX - TILE_WIDTH/2, isoY + TILE_HEIGHT/2);
-            graphics.closePath();
-            
-            container.addChild(graphics);
-            
-            if (plot.crop_type) {
-                const emoji = getCropEmoji(plot.crop_type, plot.state);
-                const text = new PIXI.Text(emoji, { fontSize: plot.state === 'ready' ? 36 : 28 });
-                text.anchor.set(0.5);
-                text.x = isoX;
-                text.y = isoY - (plot.state === 'ready' ? 20 : 15);
-                
-                if (plot.state === 'ready') {
-                    let time = 0;
-                    app.ticker.add(() => {
-                        time += 0.1;
-                        text.y = isoY - 20 + Math.sin(time) * 5;
-                    });
-                }
-                
-                container.addChild(text);
-            }
-            
-            graphics.interactive = true;
-            graphics.buttonMode = true;
-            
-            graphics.on('pointerdown', () => {
-                console.log('🖱️ Click:', plot.state);
-                if (plot.state === 'ready') {
-                    harvestCrop(plot);
-                }
-            });
-            
-            graphics.on('pointerover', (e) => {
-                showTooltip(plot, e);
-                graphics.alpha = 0.9;
-            });
-            
-            graphics.on('pointermove', (e) => {
-                updateTooltipPosition(e);
-            });
-            
-            graphics.on('pointerout', () => {
-                hideTooltip();
-                graphics.alpha = 1;
-            });
-            
-            return container;
-        }
-        
-        async function plantCrop(plot, cropType) {
-            try {
-                const response = await fetch(`${API_BASE}/game/plant/${PLAYER_ID}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ x: plot.x, y: plot.y, crop_type: cropType })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    plot.state = 'growing';
-                    plot.crop_type = cropType;
-                    plot.ready_at = new Date(Date.now() + result.ready_in_minutes * 60000).toISOString();
-                    renderFarm();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
-        async function harvestCrop(plot) {
-            console.log('✂️ Cosechando:', plot);
-            
-            try {
-                const response = await fetch(`${API_BASE}/game/harvest/${PLAYER_ID}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ x: plot.x, y: plot.y })
-                });
-                
-                const result = await response.json();
-                console.log('📦 Resultado:', result);
-                
-                if (result.success) {
-                    showNotification(`✂️ ¡${result.item}! +${result.exp_gained} XP | +${result.coins_gained} 💰`);
-                    await loadGameData();
-                    renderFarm();
-                } else {
-                    showNotification(`❌ ${result.message}`, 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-        
-        function getCropEmoji(cropType, state) {
-            const emojis = {
-                'wheat': state === 'ready' ? '🌾' : '🌱',
-                'carrot': state === 'ready' ? '🥕' : '🌱',
-                'corn': state === 'ready' ? '🌽' : '🌱',
-                'potato': state === 'ready' ? '🥔' : '🌱'
-            };
-            return emojis[cropType] || '🌱';
-        }
-        
-        function updateCrops() {
-            let needsUpdate = false;
-            
-            gameData.plots.forEach(plot => {
-                if (plot.state === 'growing' && plot.ready_at) {
-                    const now = new Date();
-                    const readyTime = new Date(plot.ready_at);
-                    
-                    if (now >= readyTime) {
-                        plot.state = 'ready';
-                        needsUpdate = true;
-                    }
-                }
-            });
-            
-            if (needsUpdate) {
-                renderFarm();
-            }
-        }
-        
-        function showTooltip(plot, event) {
-            const tooltip = document.getElementById('tooltip');
-            const title = document.getElementById('tooltipTitle');
-            const status = document.getElementById('tooltipStatus');
-            
-            if (plot.state === 'empty') {
-                title.textContent = 'Parcela vacía';
-                status.textContent = 'Arrastra un cultivo aquí';
-            } else if (plot.state === 'growing') {
-                title.textContent = `${plot.crop_type} creciendo...`;
-                status.textContent = `Listo en ${calculateTimeLeft(plot.ready_at)}`;
-            } else if (plot.state === 'ready') {
-                title.textContent = `${plot.crop_type} listo! 🎉`;
-                status.textContent = 'Click para cosechar';
-            }
-            
-            tooltip.classList.add('show');
-            updateTooltipPosition(event);
-        }
-        
-        function updateTooltipPosition(event) {
-            const tooltip = document.getElementById('tooltip');
-            tooltip.style.left = (event.clientX + 15) + 'px';
-            tooltip.style.top = (event.clientY + 15) + 'px';
-        }
-        
-        function hideTooltip() {
-            document.getElementById('tooltip').classList.remove('show');
-        }
-        
-        function calculateTimeLeft(readyAt) {
-            const now = new Date();
-            const ready = new Date(readyAt);
-            const diff = ready - now;
-            
-            if (diff <= 0) return 'Listo!';
-            
-            const minutes = Math.floor(diff / 60000);
-            const seconds = Math.floor((diff % 60000) / 1000);
-            
-            return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
-        }
-        
-        function showNotification(message, type = 'success') {
-            const notif = document.createElement('div');
-            notif.className = `notification ${type}`;
-            notif.textContent = message;
-            document.body.appendChild(notif);
-            
-            setTimeout(() => {
-                notif.style.opacity = '0';
-                setTimeout(() => notif.remove(), 300);
-            }, 3000);
-        }
-        
-        window.addEventListener('load', init);
-    </script>
+    <!-- Panel de Construcción -->
+    <div id="buildPanel" class="side-panel">
+        <div class="panel-header">
+            <h2 class="panel-title">🏗️ Construir</h2>
+            <button class="panel-close" id="closeBuildBtn">×</button>
+        </div>
+        <div class="panel-content">
+            <div class="build-tabs">
+                <button class="build-tab active" data-tab="plots">📦 Parcelas</button>
+                <button class="build-tab" data-tab="buildings">🏠 Edificios</button>
+                <button class="build-tab" data-tab="decorations">🌳 Decoración</button>
+            </div>
+            <div id="buildGrid"></div>
+        </div>
+    </div>
+
+    <!-- Overlay para paneles -->
+    <div id="panelOverlay"></div>
+    
+    <!-- Game Canvas Container -->
+    <div id="game-container"></div>
+    
+    <!-- JavaScript Modular (orden importa) -->
+    <script src="js/api.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/hud.js"></script>
+    <script src="js/cropMenu.js"></script>
+    <script src="js/harvestModal.js"></script>
+    <script src="js/farm.js"></script>
+    <script src="js/inventoryPanel.js"></script>
+    <script src="js/buildPanel.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/levelUpModal.js"></script>
 </body>
 </html>

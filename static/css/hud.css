@@ -1,0 +1,125 @@
+#hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(44, 62, 80, 0.98);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.hud-section {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.hud-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 6px 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.hud-icon {
+    font-size: 20px;
+}
+
+.hud-value {
+    color: #ffd700;
+    font-size: 16px;
+}
+
+.level-badge {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 16px;
+    color: white;
+}
+
+.farm-name {
+    font-size: 18px;
+    color: #81c784;
+    font-weight: bold;
+}
+
+#harvestBtn {
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+#harvestBtn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(255, 152, 0, 0.6);
+}
+
+#harvestBtn.has-crops {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4); }
+    50% { box-shadow: 0 4px 20px rgba(255, 152, 0, 0.8); }
+}
+
+.hud-btn {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
+}
+
+.hud-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(76, 175, 80, 0.6);
+}
+
+#buildBtn {
+    background: linear-gradient(135deg, #2196f3, #42a5f5);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+#buildBtn:hover {
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.6);
+}
+
+#inventoryBtn {
+    background: linear-gradient(135deg, #9c27b0, #ba68c8);
+    box-shadow: 0 4px 12px rgba(156, 39, 176, 0.4);
+}
+
+#inventoryBtn:hover {
+    box-shadow: 0 6px 16px rgba(156, 39, 176, 0.6);
+}

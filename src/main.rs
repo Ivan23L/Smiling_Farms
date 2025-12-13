@@ -63,6 +63,15 @@ async fn main() -> std::io::Result<()> {
             
             // Servir archivos estáticos
             .service(fs::Files::new("/", "./static").index_file("index.html"))
+            .service(
+                web::scope("/api")
+                .route("/game/init/{id}", web::get().to(game_handler::init_farm))
+                .route("/game/plant/{id}", web::post().to(game_handler::plant_crop))
+                .route("/game/harvest/{id}", web::post().to(game_handler::harvest_crop))
+                .route("/game/inventory/{id}", web::get().to(game_handler::get_inventory))
+                .route("/game/sell/{id}", web::post().to(game_handler::sell_item))
+        )
+
     })
     .bind(bind_address)?
     .run()
