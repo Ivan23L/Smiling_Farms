@@ -267,3 +267,144 @@
 .panel-content::-webkit-scrollbar-thumb:hover {
     background: rgba(129, 199, 132, 0.7);
 }
+#inventoryGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sell-item {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.sell-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.sell-item.selected {
+    background: rgba(76, 175, 80, 0.15);
+    border-color: #4caf50;
+}
+
+.sell-item-icon {
+    font-size: 56px;
+    flex-shrink: 0;
+}
+
+.sell-item-details {
+    flex: 1;
+}
+
+.sell-item-name {
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.sell-item-stock {
+    color: #FFD700;
+    font-size: 16px;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+.sell-item-price {
+    color: #4caf50;
+    font-size: 14px;
+}
+
+.sell-item-controls {
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 15px;
+    border-radius: 25px;
+}
+
+.counter-btn {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.counter-btn:hover {
+    transform: scale(1.15);
+}
+
+.counter-input {
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    width: 60px;
+    height: 36px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.inventory-footer {
+    position: sticky;
+    bottom: 0;
+    background: rgba(44, 62, 80, 0.98);
+    padding: 16px;
+    border-top: 2px solid rgba(129, 199, 132, 0.3);
+    margin: 0 -20px -20px -20px;
+}
+
+.inventory-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.total-amount {
+    color: #888;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.total-amount.has-value {
+    color: #FFD700;
+}
+
+.inventory-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.inventory-action-btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.inventory-action-btn.primary {
+    background: linear-gradient(135deg, #4caf50, #66bb6a);
+    color: white;
+}
+
+.inventory-action-btn.secondary {
+    background: linear-gradient(135deg, #ff9800, #fb8c00);
+    color: white;
+}

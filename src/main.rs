@@ -1,6 +1,7 @@
 mod models;
 mod handlers;
 mod db;
+use handlers::game_handler;
 
 use actix_web::{web, App, HttpServer, middleware};
 use actix_files as fs;
