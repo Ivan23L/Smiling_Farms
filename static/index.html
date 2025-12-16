@@ -103,9 +103,43 @@
             <button class="panel-close" id="closeInventoryBtn">×</button>
         </div>
         <div class="panel-content">
-            <div id="inventoryGrid"></div>
+            <!-- TABS DEL INVENTARIO -->
+        <div class="inventory-tabs">
+        <button class="inventory-tab active" data-tab="crops">🌾 Cultivos</button>
+        <button class="inventory-tab" data-tab="products">📦 Productos</button>
+        </div>
+
+
+        <!-- CONTENIDO CULTIVOS -->
+        <div id="crops-tab" class="inventory-tab-content active">
+        <div id="inventoryGrid-crops">
+            <!-- Los cultivos irán aquí (trigo, maíz, etc.) -->
+        </div>
+        </div>
+
+
+        <!-- CONTENIDO PRODUCTOS -->
+        <div id="products-tab" class="inventory-tab-content">
+        <div id="inventoryGrid-products">
+            <!-- Los productos irán aquí (pan, aceite, etc.) -->
+        </div>
+        </div>
+
+        <!-- FOOTER CON BOTONES ⭐ AGREGADO -->
+        <div class="inventory-footer">
+            <div class="inventory-total">
+                <span>Total a vender:</span>
+                <span class="total-amount">0 🪙</span>
+            </div>
+            <div class="inventory-buttons">
+                <button id="sellBtn" class="inventory-action-btn primary">💰 Vender</button>
+                <button id="resetBtn" class="inventory-action-btn secondary">🔄 Limpiar</button>
+            </div>
+        </div>
+
         </div>
     </div>
+
 
     <!-- Panel de Construcción -->
     <div id="buildPanel" class="side-panel">
@@ -122,6 +156,7 @@
             <div id="buildGrid"></div>
         </div>
     </div>
+
 
     <!-- Overlay para paneles -->
     <div id="panelOverlay"></div>

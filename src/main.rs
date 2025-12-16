@@ -57,21 +57,17 @@ async fn main() -> std::io::Result<()> {
             .route("/api/user/{id}", web::delete().to(handlers::user_handler::delete_user))
             
             // 🎮 Rutas del juego Smiling Farms
-            .route("/api/game/init/{player_id}", web::get().to(handlers::game_handler::init_farm))
-            .route("/api/game/plant/{player_id}", web::post().to(handlers::game_handler::plant_crop))
-            .route("/api/game/harvest/{player_id}", web::post().to(handlers::game_handler::harvest_crop))
-            .route("/api/game/inventory/{player_id}", web::get().to(handlers::game_handler::get_inventory))
+            // Rutas del juego
+            .route("/api/game/init/{id}", web::get().to(game_handler::init_farm))
+            .route("/api/game/plant/{id}", web::post().to(game_handler::plant_crop))
+            .route("/api/game/harvest/{id}", web::post().to(game_handler::harvest_crop))
+            .route("/api/game/inventory/{id}", web::get().to(game_handler::get_inventory))
+            .route("/api/game/sell/{id}", web::post().to(game_handler::sell_item))
+
             
             // Servir archivos estáticos
             .service(fs::Files::new("/", "./static").index_file("index.html"))
-            .service(
-                web::scope("/api")
-                .route("/game/init/{id}", web::get().to(game_handler::init_farm))
-                .route("/game/plant/{id}", web::post().to(game_handler::plant_crop))
-                .route("/game/harvest/{id}", web::post().to(game_handler::harvest_crop))
-                .route("/game/inventory/{id}", web::get().to(game_handler::get_inventory))
-                .route("/game/sell/{id}", web::post().to(game_handler::sell_item))
-        )
+            
 
     })
     .bind(bind_address)?
