@@ -123,3 +123,18 @@
 #inventoryBtn:hover {
     box-shadow: 0 6px 16px rgba(156, 39, 176, 0.6);
 }
+.hud-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+#dayNightIcon {
+  font-size: 18px;
+}
+.hud-time .time-value {
+  font-size: 16px;
+  color: #ffeb3b;
+}

@@ -14,14 +14,20 @@ const InventoryPanel = {
     // 🎯 CONEXIÓN DE BOTONES DEL FOOTER
     const sellBtn = document.getElementById('sellBtn');
     const resetBtn = document.getElementById('resetBtn');
-    
     if (sellBtn) {
       sellBtn.addEventListener('click', () => this.sellItems());
     }
     if (resetBtn) {
       resetBtn.addEventListener('click', () => this.resetSell());
     }
+
+    // 🔺 NUEVO: BOTÓN DE CERRAR INVENTARIO
+    const closeInventoryBtn = document.getElementById('closeInventoryBtn');
+    if (closeInventoryBtn) {
+      closeInventoryBtn.addEventListener('click', () => this.close());
+    }
   },
+
 
   open() {
     this.render();

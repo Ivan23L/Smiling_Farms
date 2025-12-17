@@ -2,6 +2,8 @@ use actix_web::{web, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use rand::Rng;
+use chrono::{NaiveDateTime, Local}; // ya usas chrono::Local más abajo
+
 
 #[derive(Serialize)]
 struct LevelUpReward {
@@ -16,6 +18,13 @@ pub struct SellRequest {
     item_type: String,
     quantity: i32,
 }
+#[derive(Deserialize)]
+pub struct BuildRequest {
+    pub structure_type: String, // "plot" | "cow_barn"
+    pub x: i32,
+    pub y: i32,
+}
+
 
 fn calculate_xp_for_level(level: i32) -> i32 {
     (100.0 * (level as f64).powf(1.5)) as i32
@@ -397,5 +406,230 @@ pub async fn get_inventory(
         })
     }).collect();
     
-    HttpResponse::Ok().json(inventory)
+    HttpResponse::Ok().json(inventory)}
+    // Construir estructuras: parcelas nuevas o establos de vacas
+pub async fn build_structure(
+    player_id: web::Path<i32>,
+    build_data: web::Json<BuildRequest>,
+    pg_client: web::Data<tokio_postgres::Client>,
+) -> impl Responder {
+    let id = player_id.into_inner();
+    let structure_type = build_data.structure_type.as_str();
+    let x = build_data.x;
+    let y = build_data.y;
+
+    // 1) Coste y nivel mínimo por tipo
+    let (cost, min_level) = match structure_type {
+        "plot" => (50_i64, 1_i32),
+        "cow_barn" => (250_i64, 4_i32),
+        _ => {
+            return HttpResponse::BadRequest().json(json!({
+                "success": false,
+                "error": "unknown_structure"
+            }))
+        }
+    };
+
+    // 2) Cargar jugador (coins + level)
+    let player_row = match pg_client
+        .query_one(
+            "SELECT level, coins FROM players WHERE id = $1",
+            &[&id],
+        )
+        .await
+    {
+        Ok(row) => row,
+        Err(_) => {
+            return HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": "player_not_found"
+            }))
+        }
+    };
+
+    let player_level: i32 = player_row.get(0);
+    let current_coins: i64 = player_row.get(1);
+
+    if player_level < min_level {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "not_enough_level",
+            "required": min_level,
+            "current": player_level
+        }));
+    }
+
+    if current_coins < cost {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "not_enough_money",
+            "cost": cost,
+            "current": current_coins
+        }));
+    }
+
+    // 3) Verificar que la casilla está libre (ni plot ni building)
+    let occupied_plots = pg_client
+        .query(
+            "SELECT 1 FROM plots WHERE player_id = $1 AND x = $2 AND y = $3",
+            &[&id, &x, &y],
+        )
+        .await
+        .unwrap_or_default();
+
+    if !occupied_plots.is_empty() {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "tile_occupied"
+        }));
+    }
+
+    let occupied_buildings = pg_client
+        .query(
+            "SELECT 1 FROM buildings WHERE player_id = $1 AND x = $2 AND y = $3",
+            &[&id, &x, &y],
+        )
+        .await
+        .unwrap_or_default();
+
+    if !occupied_buildings.is_empty() {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "tile_occupied"
+        }));
+    }
+
+    // 4) Insertar estructura según tipo
+    match structure_type {
+        "plot" => {
+            let _ = pg_client
+                .execute(
+                    "INSERT INTO plots (player_id, x, y, state) VALUES ($1, $2, $3, 'empty')",
+                    &[&id, &x, &y],
+                )
+                .await;
+        }
+        "cow_barn" => {
+            // Tabla buildings: id SERIAL, player_id, building_type, x, y, ready_at
+            let _ = pg_client
+                .execute(
+                    "INSERT INTO buildings (player_id, building_type, x, y, ready_at)
+                     VALUES ($1, 'cow_barn', $2, $3, NOW() + interval '30 minutes')",
+                    &[&id, &x, &y],
+                )
+                .await;
+        }
+        _ => {}
+    }
+
+    // 5) Cobrar monedas
+    let _ = pg_client
+        .execute(
+            "UPDATE players SET coins = coins - $1 WHERE id = $2",
+            &[&cost, &id],
+        )
+        .await;
+
+    // 6) Devolver estado mínimo actualizado (coins + eco simple)
+    let player = match pg_client
+        .query_one(
+            "SELECT id, username, farm_name, level, experience, coins, gems, energy, max_energy
+             FROM players WHERE id = $1",
+            &[&id],
+        )
+        .await
+    {
+        Ok(row) => row,
+        Err(_) => {
+            return HttpResponse::InternalServerError().json(json!({
+                "success": false,
+                "error": "player_reload_failed"
+            }))
+        }
+    };
+
+    HttpResponse::Ok().json(json!({
+        "success": true,
+        "player": {
+            "id": player.get::<_, i32>(0),
+            "username": player.get::<_, String>(1),
+            "farm_name": player.get::<_, String>(2),
+            "level": player.get::<_, i32>(3),
+            "experience": player.get::<_, i32>(4),
+            "coins": player.get::<_, i64>(5),
+            "gems": player.get::<_, i32>(6),
+            "energy": player.get::<_, i32>(7),
+            "max_energy": player.get::<_, i32>(8),
+        }
+    }))
 }
+// Recoger productos de animales (leche de establos)
+pub async fn collect_animals(
+    player_id: web::Path<i32>,
+    pg_client: web::Data<tokio_postgres::Client>,
+) -> impl Responder {
+    let id = player_id.into_inner();
+
+    // 1) Buscar establos listos: ready_at <= ahora
+    let barns = match pg_client
+        .query(
+            "SELECT id, ready_at FROM buildings
+             WHERE player_id = $1 AND building_type = 'cow_barn'",
+            &[&id],
+        )
+        .await
+    {
+        Ok(rows) => rows,
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(format!("Error: {}", e))
+        }
+    };
+
+    let now = Local::now().naive_local();
+    let mut total_milk: i32 = 0;
+
+    for barn in &barns {
+        let ready_at: Option<NaiveDateTime> = barn.get(1);
+        if let Some(ready) = ready_at {
+            if now >= ready {
+                // Producción por ciclo (p.ej. 5 unidades)
+                total_milk += 5;
+            }
+        }
+    }
+
+    if total_milk == 0 {
+        return HttpResponse::BadRequest().json(json!({
+            "success": false,
+            "error": "no_animals_ready"
+        }));
+    }
+
+    // 2) Reprogramar siguiente producción de todos los establos listos
+    let _ = pg_client
+        .execute(
+            "UPDATE buildings
+             SET ready_at = NOW() + interval '30 minutes'
+             WHERE player_id = $1 AND building_type = 'cow_barn' AND ready_at <= NOW()",
+            &[&id],
+        )
+        .await;
+
+    // 3) Añadir leche al inventario como item_type 'milk'
+    let _ = pg_client
+        .execute(
+            "INSERT INTO inventory (player_id, item_type, quantity)
+             VALUES ($1, 'milk', $2)
+             ON CONFLICT (player_id, item_type)
+             DO UPDATE SET quantity = inventory.quantity + EXCLUDED.quantity",
+            &[&id, &total_milk],
+        )
+        .await;
+
+    // 4) Devolver éxito + cantidad recogida
+    HttpResponse::Ok().json(json!({
+        "success": true,
+        "collected_milk": total_milk
+    }))
+}
+

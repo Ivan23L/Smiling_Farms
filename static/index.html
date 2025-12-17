@@ -1,169 +1,184 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🌾 Smiling Farms</title>
-    
+
     <!-- CSS Modular -->
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/hud.css">
-    <link rel="stylesheet" href="css/menus.css">
-    <link rel="stylesheet" href="css/game.css">
-    <link rel="stylesheet" href="css/panels.css">
-    
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/hud.css" />
+    <link rel="stylesheet" href="css/menus.css" />
+    <link rel="stylesheet" href="css/game.css" />
+    <link rel="stylesheet" href="css/panels.css" />
+
     <!-- PixiJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
-</head>
-<body>
+  </head>
+  <body>
     <!-- Loading Screen -->
     <div id="loading">
-        <div class="spinner"></div>
-        <div>🌾 Cargando Smiling Farms...</div>
+      <div class="spinner"></div>
+      <div>🌾 Cargando Smiling Farms...</div>
     </div>
-    
+
     <!-- HUD Superior -->
     <div id="hud">
-        <div class="hud-section">
-            <div class="farm-name" id="farmName">🌾 Mi Granja</div>
-            <div class="level-badge">
-                <span class="hud-icon">⭐</span>
-                <span>Nivel <span id="playerLevel">1</span></span>
-            </div>
+      <div class="hud-section">
+        <div class="farm-name" id="farmName">🌾 Mi Granja</div>
+        <div class="level-badge">
+          <span class="hud-icon">⭐</span>
+          <span>Nivel <span id="playerLevel">1</span></span>
         </div>
-        
-        <div class="hud-section">
-            <button id="harvestBtn">
-                <span>🌾</span>
-                <span>Cosechar (<span id="readyCropsCount">0</span>)</span>
-            </button>
-            <button id="inventoryBtn" class="hud-btn">
-                <span>🎒</span>
-                <span>Inventario</span>
-            </button>
-            <button id="buildBtn" class="hud-btn">
-                <span>🏗️</span>
-                <span>Construir</span>
-            </button>
+        <div class="hud-time">
+          <span id="dayNightIcon">🌞</span>
+          <span id="gameTimeText"></span>
         </div>
-        
-        <div class="hud-section">
-            <div class="hud-item">
-                <span class="hud-icon">💰</span>
-                <span class="hud-value" id="coins">500</span>
-            </div>
-            <div class="hud-item">
-                <span class="hud-icon">💎</span>
-                <span class="hud-value" id="gems">10</span>
-            </div>
-            <div class="hud-item">
-                <span class="hud-icon">⚡</span>
-                <span class="hud-value"><span id="energy">100</span>/<span id="maxEnergy">100</span></span>
-            </div>
-            <div class="hud-item">
-                <span class="hud-icon">✨</span>
-                <span class="hud-value" id="experience">0</span> XP
-            </div>
+      </div>
+
+      <div class="hud-section">
+        <button id="harvestBtn">
+          <span>🌾</span>
+          <span>Cosechar (<span id="readyCropsCount">0</span>)</span>
+        </button>
+        <button id="inventoryBtn" class="hud-btn">
+          <span>🎒</span>
+          <span>Inventario</span>
+        </button>
+        <button id="buildBtn" class="hud-btn">
+          <span>🏗️</span>
+          <span>Construir</span>
+        </button>
+      </div>
+
+      <div class="hud-section">
+        <div class="hud-item">
+          <span class="hud-icon">💰</span>
+          <span class="hud-value" id="coins">500</span>
         </div>
+        <div class="hud-item">
+          <span class="hud-icon">💎</span>
+          <span class="hud-value" id="gems">10</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-icon">⚡</span>
+          <span class="hud-value"
+            ><span id="energy">100</span>/<span id="maxEnergy">100</span></span
+          >
+        </div>
+        <div class="hud-item">
+          <span class="hud-icon">✨</span>
+          <span class="hud-value" id="experience">0</span> XP
+        </div>
+      </div>
     </div>
-    
+
     <!-- Menú de cultivos (overlay + menú radial) -->
     <div id="cropMenuOverlay"></div>
     <div id="cropMenu">
-        <div class="radial-menu-container">
-            <div class="radial-center">🌱</div>
-        </div>
+      <div class="radial-menu-container">
+        <div class="radial-center">🌱</div>
+      </div>
     </div>
-    
+
     <!-- Modal de cosecha -->
     <div id="harvestModal">
-        <div class="harvest-modal-content">
-            <div class="harvest-modal-header">
-                <div class="harvest-modal-title">🌾 Cultivos listos</div>
-                <button class="close-modal" id="closeHarvestBtn">×</button>
-            </div>
-            <div id="harvestList"></div>
-            <div class="harvest-modal-actions">
-                <button class="harvest-btn primary" id="harvestSelectedBtn">✂️ Cosechar seleccionados</button>
-                <button class="harvest-btn secondary" id="harvestAllBtn">🌾 Cosechar todo</button>
-            </div>
+      <div class="harvest-modal-content">
+        <div class="harvest-modal-header">
+          <div class="harvest-modal-title">🌾 Cultivos listos</div>
+          <button class="close-modal" id="closeHarvestBtn">×</button>
         </div>
+        <div id="harvestList"></div>
+        <div class="harvest-modal-actions">
+          <button class="harvest-btn primary" id="harvestSelectedBtn">
+            ✂️ Cosechar seleccionados
+          </button>
+          <button class="harvest-btn secondary" id="harvestAllBtn">
+            🌾 Cosechar todo
+          </button>
+        </div>
+      </div>
     </div>
-    
+
     <!-- Tooltip -->
     <div id="tooltip">
-        <div class="tooltip-title" id="tooltipTitle"></div>
-        <div class="tooltip-status" id="tooltipStatus"></div>
+      <div class="tooltip-title" id="tooltipTitle"></div>
+      <div class="tooltip-status" id="tooltipStatus"></div>
     </div>
-    
+
     <!-- Panel de Inventario -->
     <div id="inventoryPanel" class="side-panel">
-        <div class="panel-header">
-            <h2 class="panel-title">🎒 Inventario</h2>
-            <button class="panel-close" id="closeInventoryBtn">×</button>
-        </div>
-        <div class="panel-content">
-            <!-- TABS DEL INVENTARIO -->
+      <div class="panel-header">
+        <h2 class="panel-title">🎒 Inventario</h2>
+        <button class="panel-close" id="closeInventoryBtn">×</button>
+      </div>
+      <div class="panel-content">
+        <!-- TABS DEL INVENTARIO -->
         <div class="inventory-tabs">
-        <button class="inventory-tab active" data-tab="crops">🌾 Cultivos</button>
-        <button class="inventory-tab" data-tab="products">📦 Productos</button>
+          <button class="inventory-tab active" data-tab="crops">
+            🌾 Cultivos
+          </button>
+          <button class="inventory-tab" data-tab="products">
+            📦 Productos
+          </button>
         </div>
-
 
         <!-- CONTENIDO CULTIVOS -->
         <div id="crops-tab" class="inventory-tab-content active">
-        <div id="inventoryGrid-crops">
+          <div id="inventoryGrid-crops">
             <!-- Los cultivos irán aquí (trigo, maíz, etc.) -->
+          </div>
         </div>
-        </div>
-
 
         <!-- CONTENIDO PRODUCTOS -->
         <div id="products-tab" class="inventory-tab-content">
-        <div id="inventoryGrid-products">
+          <div id="inventoryGrid-products">
             <!-- Los productos irán aquí (pan, aceite, etc.) -->
-        </div>
+          </div>
         </div>
 
         <!-- FOOTER CON BOTONES ⭐ AGREGADO -->
         <div class="inventory-footer">
-            <div class="inventory-total">
-                <span>Total a vender:</span>
-                <span class="total-amount">0 🪙</span>
-            </div>
-            <div class="inventory-buttons">
-                <button id="sellBtn" class="inventory-action-btn primary">💰 Vender</button>
-                <button id="resetBtn" class="inventory-action-btn secondary">🔄 Limpiar</button>
-            </div>
+          <div class="inventory-total">
+            <span>Total a vender:</span>
+            <span class="total-amount">0 🪙</span>
+          </div>
+          <div class="inventory-buttons">
+            <button id="sellBtn" class="inventory-action-btn primary">
+              💰 Vender
+            </button>
+            <button id="resetBtn" class="inventory-action-btn secondary">
+              🔄 Limpiar
+            </button>
+          </div>
         </div>
-
-        </div>
+      </div>
     </div>
-
 
     <!-- Panel de Construcción -->
     <div id="buildPanel" class="side-panel">
-        <div class="panel-header">
-            <h2 class="panel-title">🏗️ Construir</h2>
-            <button class="panel-close" id="closeBuildBtn">×</button>
+      <div class="panel-header">
+        <h2 class="panel-title">🏗️ Construir</h2>
+        <button class="panel-close" id="closeBuildBtn">×</button>
+      </div>
+      <div class="panel-content">
+        <div class="build-tabs">
+          <button class="build-tab active" data-tab="plots">📦 Parcelas</button>
+          <button class="build-tab" data-tab="buildings">🏠 Edificios</button>
+          <button class="build-tab" data-tab="decorations">
+            🌳 Decoración
+          </button>
         </div>
-        <div class="panel-content">
-            <div class="build-tabs">
-                <button class="build-tab active" data-tab="plots">📦 Parcelas</button>
-                <button class="build-tab" data-tab="buildings">🏠 Edificios</button>
-                <button class="build-tab" data-tab="decorations">🌳 Decoración</button>
-            </div>
-            <div id="buildGrid"></div>
-        </div>
+        <div id="buildGrid"></div>
+      </div>
     </div>
-
 
     <!-- Overlay para paneles -->
     <div id="panelOverlay"></div>
-    
+
     <!-- Game Canvas Container -->
     <div id="game-container"></div>
-    
+
     <!-- JavaScript Modular (orden importa) -->
     <script src="js/api.js"></script>
     <script src="js/notifications.js"></script>
@@ -175,5 +190,5 @@
     <script src="js/buildPanel.js"></script>
     <script src="js/main.js"></script>
     <script src="js/levelUpModal.js"></script>
-</body>
+  </body>
 </html>

@@ -63,6 +63,9 @@ async fn main() -> std::io::Result<()> {
             .route("/api/game/harvest/{id}", web::post().to(game_handler::harvest_crop))
             .route("/api/game/inventory/{id}", web::get().to(game_handler::get_inventory))
             .route("/api/game/sell/{id}", web::post().to(game_handler::sell_item))
+            .route("/api/game/build/{id}", web::post().to(game_handler::build_structure))
+            .route("/api/game/collect_animals/{id}", web::post().to(game_handler::collect_animals))
+
 
             
             // Servir archivos estáticos
