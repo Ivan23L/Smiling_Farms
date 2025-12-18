@@ -242,49 +242,80 @@ const InventoryPanel = {
     }
   },
 
-  sellItems() {
-    const totalAmount = document.querySelector('.total-amount')?.textContent || '0';
-    const totalCoins = parseInt(totalAmount.match(/\d+/)?.[0] || 0);
+     async sellItems() {
+    const totalAmountText = document.querySelector('.total-amount')?.textContent || '0';
+    const totalCoinsPreview = parseInt(totalAmountText.match(/\d+/)?.[0] || 0);
 
-    if (totalCoins === 0) {
-      alert('❌ Selecciona items para vender');
+    if (totalCoinsPreview === 0) {
+      Notifications.show('Selecciona cultivos o productos para vender', 'error');
       return;
     }
 
+    // Construir lista de items desde los contadores actuales
     const itemsToSell = [];
     document.querySelectorAll('.sell-item').forEach(item => {
       const itemId = item.dataset.itemId;
       const quantity = this.sellCounters[itemId] || 0;
       if (quantity > 0) {
-        itemsToSell.push({ item: itemId, quantity: quantity });
+        itemsToSell.push({ itemId, quantity });
       }
     });
 
     if (itemsToSell.length === 0) return;
 
-    // Enviar al servidor
-    fetch('/api/sell', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: itemsToSell })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          this.sellCounters = {};
-          this.render();
-          if (window.HUD) HUD.updateCoins(data.coins);
-          console.log(`✅ Venta exitosa: +${totalCoins} 🪙`);
-          alert(`✅ ¡Venta exitosa!\n+${totalCoins} 🪙`);
+    let totalCoinsEarned = 0;
+
+    // Vender cada item usando tu API actual
+    for (const { itemId, quantity } of itemsToSell) {
+      try {
+        const result = await API.sellItem(itemId, quantity); // /game/sell/{PLAYER_ID} con { item_type, quantity } [file:40]
+        if (result.success) {
+          if (typeof result.coins_earned === 'number') {
+            totalCoinsEarned += result.coins_earned; // el backend devuelve coins_earned [file:14]
+          }
         } else {
-          alert('❌ Error en la venta: ' + (data.message || 'desconocido'));
+          console.error('Error selling item', itemId, result);
+          Notifications.show(
+            `No se pudo vender ${itemId} (${result.error || 'error desconocido'})`,
+            'error'
+          );
         }
-      })
-      .catch(err => {
-        console.error('Error selling items:', err);
-        alert('❌ Error de conexión con el servidor');
-      });
+      } catch (err) {
+        console.error('Error de conexión al vender:', err);
+        Notifications.show('Error al conectar con el servidor al vender', 'error');
+        return;
+      }
+    }
+
+    if (totalCoinsEarned > 0) {
+      Notifications.show(`Has recibido ${totalCoinsEarned} 🪙 por la venta.`, 'success');
+    }
+
+    // Actualizar estado del jugador y HUD sin recargar
+    if (totalCoinsEarned > 0 && Game.gameData?.player) {
+      Game.gameData.player.coins += totalCoinsEarned;
+
+      if (window.HUD) {
+        if (typeof HUD.updateCoins === 'function') {
+          HUD.updateCoins(Game.gameData.player.coins); // cambia solo el número de monedas en el HUD [file:38]
+        } else if (typeof HUD.update === 'function') {
+          HUD.update(Game.gameData.player);
+        }
+      }
+    }
+
+    // Recargar inventario y resetear contadores
+    try {
+      const inventory = await API.getInventory();
+      Game.gameData.inventory = inventory;
+      this.sellCounters = {};
+      this.render(); // rehace lista + preview del footer
+    } catch (err) {
+      console.error('Error recargando inventario tras vender:', err);
+    }
   },
+
+
 
   resetSell() {
     this.sellCounters = {};

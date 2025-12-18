@@ -293,3 +293,4 @@ const Farm = {
     return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
   },
 };
+window.Farm = Farm;
