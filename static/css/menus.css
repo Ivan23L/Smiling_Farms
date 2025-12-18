@@ -156,6 +156,103 @@
     padding: 2px 6px;
     border-radius: 4px;
 }
+/* Modal genérico para confirmación de venta */
+
+.panel-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.panel-modal.show {
+  display: flex;
+}
+
+.panel-modal-content {
+  background: #171b24;
+  border-radius: 16px;
+  padding: 24px 28px;
+  min-width: 360px;
+  max-width: 460px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+  color: #f5f7ff;
+}
+
+.panel-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.panel-modal-title::before {
+  content: "⚠️";
+  font-size: 18px;
+}
+
+.panel-modal-text {
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.92;
+  margin-bottom: 18px;
+}
+
+.panel-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+/* Botones del modal de confirmación */
+
+.panel-modal .btn-primary,
+.panel-modal .btn-secondary {
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+  min-width: 120px;
+}
+
+.panel-modal .btn-primary {
+  background: linear-gradient(135deg, #ffb347, #ff8b3d);
+  color: #1a1210;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.panel-modal .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+}
+
+.panel-modal .btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.panel-modal .btn-secondary {
+  background: #252b3a;
+  color: #e0e4ff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.panel-modal .btn-secondary:hover {
+  background: #2d3445;
+}
+
+.panel-modal .btn-secondary:active {
+  background: #232938;
+}
+
 
 /* Modal de cosecha */
 #harvestModal {
