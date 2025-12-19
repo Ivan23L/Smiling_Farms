@@ -6,11 +6,24 @@ const Farm = {
   isMouseDown: false,
   buildMode: null,
 
+  // 👇 NUEVO: mapa de biomas 70x70 y zoom
+  MAP_WIDTH: 70,
+  MAP_HEIGHT: 70,
+  biomeMap: [],
+  decorations: [],
+  worldContainer: null,
+  zoom: 1,
+  isPanning: false,
+  panStart: { x: 0, y: 0 },
+  worldStart: { x: 0, y: 0 },
+    worldBounds: { minX: 0, maxX: 0, minY: 0, maxY: 0 },
+
+
   init() {
     this.app = new PIXI.Application({
-      width: window.innerWidth - 280,
+      width: window.innerWidth,
       height: window.innerHeight,
-      backgroundColor: 0x87ceeb,
+      backgroundColor: 0x5fa3d1,
       antialias: true,
     });
 
@@ -22,14 +35,166 @@ const Farm = {
     document.addEventListener("mouseup", () => {
       this.isMouseDown = false;
     });
+    //  inicializar mapa de biomas y contenedor del “mundo”
+    this.worldContainer = new PIXI.Container();
+    this.app.stage.addChild(this.worldContainer);
+
+    // Zoom con límites suaves
+    this.app.view.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const zoomFactor = 1.1;
+      const oldZoom = this.zoom;
+
+      if (e.deltaY < 0) this.zoom = Math.min(this.zoom * zoomFactor, 2.2);
+      else this.zoom = Math.max(this.zoom / zoomFactor, 0.7);
+
+      const mousePos = this.app.renderer.plugins.interaction.mouse.global;
+      const wx = (mousePos.x - this.worldContainer.x) / oldZoom;
+      const wy = (mousePos.y - this.worldContainer.y) / oldZoom;
+
+      this.worldContainer.scale.set(this.zoom);
+      this.worldContainer.x = mousePos.x - wx * this.zoom;
+      this.worldContainer.y = mousePos.y - wy * this.zoom;
+      this.clampCamera();
+    });
+
+    // Drag para mover el mapa
+    this.app.view.addEventListener("mousedown", (e) => {
+      this.isPanning = true;
+      this.panStart.x = e.clientX;
+      this.panStart.y = e.clientY;
+      this.worldStart.x = this.worldContainer.x;
+      this.worldStart.y = this.worldContainer.y;
+    });
+
+    window.addEventListener("mouseup", () => {
+      this.isPanning = false;
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!this.isPanning) return;
+      const dx = e.clientX - this.panStart.x;
+      const dy = e.clientY - this.panStart.y;
+      this.worldContainer.x = this.worldStart.x + dx;
+      this.worldContainer.y = this.worldStart.y + dy;
+      this.clampCamera();
+    });
+    this.generateBiomeMap();
+    this.generateDecorations();
+  },
+  clampCamera() {
+    const z = this.zoom;
+    const viewW = this.app.screen.width;
+    const viewH = this.app.screen.height;
+
+    // worldBounds están en coords del container, así que invertimos la transform
+    const left   = this.worldBounds.minX * z + this.worldContainer.x;
+    const right  = this.worldBounds.maxX * z + this.worldContainer.x;
+    const top    = this.worldBounds.minY * z + this.worldContainer.y;
+    const bottom = this.worldBounds.maxY * z + this.worldContainer.y;
+
+    // no dejar que se vea “fuera” del mapa
+    if (left > 100) {
+      this.worldContainer.x -= left - 100;
+    }
+    if (right < viewW - 100) {
+      this.worldContainer.x += (viewW - 100) - right;
+    }
+    if (top > 80) {
+      this.worldContainer.y -= top - 80;
+    }
+    if (bottom < viewH - 80) {
+      this.worldContainer.y += (viewH - 80) - bottom;
+    }
+  },
+
+  // Genera un mapa 70x70 de biomas decorativos
+  generateBiomeMap() {
+    this.biomeMap = [];
+
+    for (let y = 0; y < this.MAP_HEIGHT; y++) {
+      const row = [];
+      for (let x = 0; x < this.MAP_WIDTH; x++) {
+        let biome = "field"; // campo por defecto
+
+        // bosque en la parte norte
+        if (y < 15 && x > 10) biome = "forest";
+
+        // montaña en la esquina noreste
+        if (x > 50 && y < 20) biome = "mountain";
+
+        // río vertical cerca del centro
+        if (x === 30 || x === 31) biome = "river";
+
+        row.push(biome);
+      }
+      this.biomeMap.push(row);
+    }
+  },
+  generateDecorations() {
+    this.decorations = [];
+
+    // Árboles esparcidos en el bosque
+    for (let i = 0; i < 80; i++) {
+      const x = 15 + Math.floor(Math.random() * 30);
+      const y = 0 + Math.floor(Math.random() * 18);
+      this.decorations.push({ type: "tree", x, y });
+    }
+
+    // Rocas en la zona de montaña
+    for (let i = 0; i < 40; i++) {
+      const x = 48 + Math.floor(Math.random() * 20);
+      const y = 5 + Math.floor(Math.random() * 18);
+      this.decorations.push({ type: "rock", x, y });
+    }
+
+    // Valla alrededor de la granja (zona suroeste)
+    for (let x = 4; x <= 16; x++) {
+      this.decorations.push({ type: "fence", x, y: 30 });
+      this.decorations.push({ type: "fence", x, y: 40 });
+    }
+    for (let y = 30; y <= 40; y++) {
+      this.decorations.push({ type: "fence", x: 4, y });
+      this.decorations.push({ type: "fence", x: 16, y });
+    }
+
+    // Puente sobre el río
+    const bridgeY = 28;
+    for (let dx = -2; dx <= 2; dx++) {
+      this.decorations.push({
+        type: "bridge",
+        x: 30 + dx,
+        y: bridgeY + dx, // ligeramente diagonal
+      });
+    }
   },
 
   render() {
-    this.app.stage.removeChildren();
+    // Limpiamos el contenedor del mundo (pero no el stage entero)
+    this.worldContainer.removeChildren();
 
     const container = new PIXI.Container();
-    container.x = (this.app.screen.width - 280) / 2;
-    container.y = 100;
+
+    // 1) Dibujar mapa de biomas completo
+    const biomeLayer = new PIXI.Container();
+
+    for (let y = 0; y < this.MAP_HEIGHT; y++) {
+      for (let x = 0; x < this.MAP_WIDTH; x++) {
+        const biome = this.biomeMap[y][x];
+        const tile = this.createBiomeTile(x, y, biome);
+        biomeLayer.addChild(tile);
+      }
+    }
+
+    container.addChild(biomeLayer);
+    const decoLayer = new PIXI.Container();
+    this.decorations.forEach((d) => {
+      const sprite = this.createDecorationSprite(d);
+      decoLayer.addChild(sprite);
+    });
+    container.addChild(decoLayer);
+    // 2) Dibujar las parcelas existentes (las mismas que ya usas)
+    const plotsLayer = new PIXI.Container();
 
     const sortedPlots = [...Game.gameData.plots].sort(
       (a, b) => a.x + a.y - (b.x + b.y)
@@ -37,17 +202,148 @@ const Farm = {
 
     sortedPlots.forEach((plot) => {
       const plotSprite = this.createPlotSprite(plot);
-      container.addChild(plotSprite);
+      plotsLayer.addChild(plotSprite);
     });
 
-    this.app.stage.addChild(container);
+    container.addChild(plotsLayer);
+
+    // 3) Posicionar el mundo: granja al suroeste del mapa
+    container.x = this.app.screen.width / 2;
+    container.y = this.app.screen.height / 2 + 80;
+
+    if (this.worldContainer.children.length === 0) {
+      // primer render; centramos pensando en HUD arriba
+      container.x = this.app.screen.width / 2;
+      container.y = this.app.screen.height / 2 + 80;
+    }
+    this.worldContainer.addChild(container);
+        // calcular bounds del mundo (para limitar el drag)
+    const topLeft     = this.isoToScreen(0, 0);
+    const topRight    = this.isoToScreen(this.MAP_WIDTH, 0);
+    const bottomLeft  = this.isoToScreen(0, this.MAP_HEIGHT);
+    const bottomRight = this.isoToScreen(this.MAP_WIDTH, this.MAP_HEIGHT);
+
+    const xs = [topLeft.x, topRight.x, bottomLeft.x, bottomRight.x];
+    const ys = [topLeft.y, topRight.y, bottomLeft.y, bottomRight.y];
+
+    this.worldBounds.minX = Math.min(...xs);
+    this.worldBounds.maxX = Math.max(...xs);
+    this.worldBounds.minY = Math.min(...ys);
+    this.worldBounds.maxY = Math.max(...ys);
+
   },
+    isoToScreen(x, y) {
+    return {
+      x: (x - y) * (this.TILE_WIDTH / 2),
+      y: (x + y) * (this.TILE_HEIGHT / 2),
+    };
+  },
+
+
   startBuildMode(structureId) {
     this.buildMode = structureId;
   },
 
   cancelBuildMode() {
     this.buildMode = null;
+  },
+  // Dibuja un tile de bioma (campo, bosque, río, montaña) en coordenadas de mapa
+  createBiomeTile(mapX, mapY, biome) {
+    const g = new PIXI.Graphics();
+
+    const isoX = (mapX - mapY) * (this.TILE_WIDTH / 2);
+    const isoY = (mapX + mapY) * (this.TILE_HEIGHT / 2);
+
+    let fillColor;
+    let borderColor;
+    switch (biome) {
+      case "forest":
+        fillColor = 0x1f6b3b; // verde bosque más vivo
+        borderColor = 0x174f2c;
+        break;
+      case "river":
+        fillColor = 0x3399ff; // azul claro
+        borderColor = 0x1c6fbf;
+        break;
+      case "mountain":
+        fillColor = 0x8d9ba6; // gris azulado
+        borderColor = 0x6b7a86;
+        break;
+      default: // field
+        fillColor = 0x7fcf5b; // verde césped brillante
+        borderColor = 0x5fa33f;
+        break;
+    }
+
+    g.beginFill(fillColor);
+    g.moveTo(isoX, isoY);
+    g.lineTo(isoX + this.TILE_WIDTH / 2, isoY + this.TILE_HEIGHT / 2);
+    g.lineTo(isoX, isoY + this.TILE_HEIGHT);
+    g.lineTo(isoX - this.TILE_WIDTH / 2, isoY + this.TILE_HEIGHT / 2);
+    g.closePath();
+    g.endFill();
+
+    g.lineStyle(1, borderColor, 0.7);
+    g.moveTo(isoX, isoY);
+    g.lineTo(isoX + this.TILE_WIDTH / 2, isoY + this.TILE_HEIGHT / 2);
+    g.lineTo(isoX, isoY + this.TILE_HEIGHT);
+    g.lineTo(isoX - this.TILE_WIDTH / 2, isoY + this.TILE_HEIGHT / 2);
+    g.closePath();
+
+    return g;
+  },
+  createDecorationSprite(dec) {
+    const g = new PIXI.Graphics();
+    const isoX = (dec.x - dec.y) * (this.TILE_WIDTH / 2);
+    const isoY = (dec.x + dec.y) * (this.TILE_HEIGHT / 2);
+
+    if (dec.type === "tree") {
+      // tronco
+      g.beginFill(0x8d5a2b);
+      g.drawRect(isoX - 4, isoY - 10, 8, 10);
+      g.endFill();
+      // copa
+      g.beginFill(0x2e7d32);
+      g.drawCircle(isoX, isoY - 22, 14);
+      g.endFill();
+    }
+
+    if (dec.type === "rock") {
+      g.beginFill(0x90a4ae);
+      g.drawPolygon(
+        isoX - 10,
+        isoY,
+        isoX,
+        isoY - 8,
+        isoX + 10,
+        isoY,
+        isoX + 4,
+        isoY + 6,
+        isoX - 4,
+        isoY + 6
+      );
+      g.endFill();
+    }
+
+    if (dec.type === "fence") {
+      g.lineStyle(3, 0x795548);
+      g.moveTo(isoX - 8, isoY + 4);
+      g.lineTo(isoX + 8, isoY - 4);
+    }
+
+    if (dec.type === "bridge") {
+      g.beginFill(0xa1887f);
+      g.drawRect(isoX - 14, isoY - 4, 28, 8);
+      g.endFill();
+      g.lineStyle(1, 0x5d4037);
+      g.moveTo(isoX - 14, isoY - 4);
+      g.lineTo(isoX + 14, isoY - 4);
+      g.moveTo(isoX - 14, isoY + 4);
+      g.lineTo(isoX + 14, isoY + 4);
+    }
+
+    g.zIndex = dec.y;
+    return g;
   },
 
   createPlotSprite(plot) {

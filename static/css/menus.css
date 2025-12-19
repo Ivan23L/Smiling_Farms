@@ -1,3 +1,6 @@
+/* ========================================
+   MENÚ RADIAL DE CULTIVOS
+======================================== */
 /* Overlay del menú de cultivos */
 #cropMenuOverlay {
     position: fixed;
@@ -156,8 +159,9 @@
     padding: 2px 6px;
     border-radius: 4px;
 }
-/* Modal genérico para confirmación de venta */
-
+/* ========================================
+   MODAL GENÉRICO (CONFIRMACIÓN DE VENTA)
+======================================== */
 .panel-modal {
   position: fixed;
   inset: 0;
@@ -254,7 +258,9 @@
 }
 
 
-/* Modal de cosecha */
+/* ========================================
+   MODAL DE COSECHA MASIVA
+======================================== */
 #harvestModal {
     position: fixed;
     top: 0;
@@ -466,7 +472,9 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(255, 152, 0, 0.5);
 }
-/* Modal de Level Up */
+/* ========================================
+   MODAL DE LEVEL UP
+======================================== */
 .level-up-modal {
     position: fixed;
     top: 0;

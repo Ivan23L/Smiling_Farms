@@ -1,3 +1,6 @@
+/* ========================================
+   TOOLTIP DE PARCELA
+======================================== */
 #tooltip {
     position: fixed;
     background: rgba(0, 0, 0, 0.95);
@@ -26,6 +29,9 @@
     opacity: 0.9;
 }
 
+/* ========================================
+   NOTIFICACIONES IN-GAME (COINS, ERRORES)
+======================================== */
 .notification {
     position: fixed;
     top: 80px;
